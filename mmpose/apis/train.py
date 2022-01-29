@@ -60,6 +60,7 @@ def train_model(model,
                 cfg,
                 distributed=False,
                 validate=False,
+                device='cuda'
                 timestamp=None,
                 meta=None):
     """Train model entry function.
@@ -130,8 +131,12 @@ def train_model(model,
                 broadcast_buffers=False,
                 find_unused_parameters=find_unused_parameters)
     else:
-        model = MMDataParallel(
-            model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+        if device == 'cuda':
+            model = MMDataParallel(model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+        elif device == 'cpu':
+            model = model.cpu()
+        else:
+            raise ValueError(F'unsupported device name {device}.')
 
     # build runner
     optimizer = build_optimizers(model, cfg.optimizer)
